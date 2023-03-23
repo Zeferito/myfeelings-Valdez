@@ -2,10 +2,195 @@ package valdez.jaime.myfeelings
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.Toast
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import valdez.jaime.myfeelings.utilities.CustomBarDrawable
+import valdez.jaime.myfeelings.utilities.CustomCircleDrawable
+import valdez.jaime.myfeelings.utilities.Emociones
+import valdez.jaime.myfeelings.utilities.JSONFile
 
 class MainActivity : AppCompatActivity() {
+    var jsonFile: JSONFile? = null
+    var veryHappy = 0.0f
+    var happy = 0.0f
+    var neutral = 0.0f
+    var sad = 0.0f
+    var verySad = 0.0f
+    var data: Boolean = false
+    var lista: ArrayList<Emociones>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        val guardarButton: Button = findViewById(R.id.guardarButton)
+        val veryHappyButton: ImageButton = findViewById(R.id.veryHappyButton)
+        val happyButton: ImageButton = findViewById(R.id.happyButton)
+        val neutralButton: ImageButton = findViewById(R.id.neutralButton)
+        val sadButton: ImageButton = findViewById(R.id.sadButton)
+        val verySadButton: ImageButton = findViewById(R.id.verySadButton)
+
+        jsonFile = JSONFile()
+        fetchingData()
+        if(!data){
+            var emociones = ArrayList<Emociones>()
+            val fondo = CustomCircleDrawable(this, emociones)
+            graph.background = fondo
+            graphVeryHappy.background = CustomBarDrawable(this, Emociones("Muy feliz", 0.0F, R.color.mustard, veryHappy))
+            graphHappy.background = CustomBarDrawable(this, Emociones("Feliz", 0.0F, R.color.orange, happy))
+            graphNeutral.background = CustomBarDrawable(this, Emociones("Neutral", 0.0F, R.color.greenie, neutral))
+            graphSad.background = CustomBarDrawable(this, Emociones("Triste", 0.0F, R.color.blue, sad))
+            graphVerySad.background = CustomBarDrawable(this, Emociones("Muy triste", 0.0F, R.color.deepblue, verySad))
+        }else{
+            actualizacionGrafica()
+            iconoMayoria()
+        }
+
+        guardarButton.setOnClickListener{
+            guardar()
+        }
+        veryHappyButton.setOnClickListener {
+            veryHappy++
+            iconoMayoria()
+            actualizacionGrafica()
+        }
+        happyButton.setOnClickListener {
+            happy++
+            iconoMayoria()
+            actualizacionGrafica()
+        }
+        neutralButton.setOnClickListener {
+            neutral++
+            iconoMayoria()
+            actualizacionGrafica()
+        }
+        sadButton.setOnClickListener {
+            sad++
+            iconoMayoria()
+            actualizacionGrafica()
+        }
+        verySadButton.setOnClickListener {
+            verySad++
+            iconoMayoria()
+            actualizacionGrafica()
+        }
+    }
+
+
+    fun fetchingData(){
+        try {
+            var json: String = jsonFile?.gateData(this)?:""
+            if (json != ""){
+                this.data = true
+                var jsonArray: JSONArray = JSONArray(json)
+                this.lista = perseJson(jsonArray)
+                for (i in lista){
+                    when(i.nombre){
+                        "Muy feliz" -> veryHappy = i.total
+                        "Feliz" -> happy = i.total
+                        "Neutral" -> neutral = i.total
+                        "Triste" -> sad = i.total
+                        "Muy triste" -> verySad = i.total
+                    }
+                }
+            }else{
+                this.data = false
+            }
+        }catch (exception: JSONException){
+            exception.printStackTrace()
+        }
+    }
+    fun iconoMayoria(){
+        if (happy>veryHappy && happy>neutral && happy>sad && happy>verySad){
+            icon.setImageDrawable(resources.getDrawable(R.drawable.ic_happy))
+        }
+        if (veryHappy>happy && veryHappy>neutral && veryHappy>sad && veryHappy>verySad){
+            icon.setImageDrawable(resources.getDrawable(R.drawable.ic_veryhappy))
+        }
+        if (neutral>veryHappy && neutral>happy && neutral>sad && neutral>verySad){
+            icon.setImageDrawable(resources.getDrawable(R.drawable.ic_neutral))
+        }
+        if (sad>veryHappy && sad>neutral && sad>happy && sad>verySad){
+            icon.setImageDrawable(resources.getDrawable(R.drawable.ic_sad))
+        }
+        if (verySad>veryHappy && verySad>neutral && verySad>sad && verySad>happy){
+            icon.setImageDrawable(resources.getDrawable(R.drawable.ic_verysad))
+        }
+    }
+    fun actualizacionGrafica(){
+        val total = veryHappy+happy+neutral+sad+verySad
+        var pVH: Float = (veryHappy * 100 / total).toFloat()
+        var pH: Float = (happy * 100 / total).toFloat()
+        var pN: Float = (neutral * 100 / total).toFloat()
+        var pS: Float = (sad * 100 / total).toFloat()
+        var pVS: Float = (verySad * 100 / total).toFloat()
+
+        Log.d("porcentajes", "very happy " + pVH)
+        Log.d("porcentajes", " happy " + pH)
+        Log.d("porcentajes", "neutral " + pN)
+        Log.d("porcentajes", "sad " + pS)
+        Log.d("porcentajes", "very sad " + pVS)
+
+        lista.clear()
+        lista.add(Emociones("Muy feliz", pVH, R.color.mustard, veryHappy))
+        lista.add(Emociones("Feliz", pH, R.color.orange, happy))
+        lista.add(Emociones("Neutral", pN, R.color.greenie, neutral))
+        lista.add(Emociones("Triste", pS, R.color.blue, sad))
+        lista.add(Emociones("Muy triste", pVS, R.color.deepblue, verySad))
+
+        val fondo = CustomCircleDrawable(this, lista)
+
+        lateinit  var graphVeryHappy: String
+        lateinit var graphHappy: String
+        lateinit var graphNeutral: String
+        lateinit var graphSad: String
+        lateinit var graphVerySad: String
+        lateinit var graph: String
+
+        graphVeryHappy.background = CustomBarDrawable(this, Emociones("Muy feliz", pVH, R.color.mustard, veryHappy))
+        graphHappy.background = CustomBarDrawable(this, Emociones("Feliz", pH, R.color.orange, happy))
+        graphNeutral.background = CustomBarDrawable(this, Emociones("Neutral", pN, R.color.greenie, neutral))
+        graphSad.background = CustomBarDrawable(this, Emociones("Triste", pS, R.color.blue, sad))
+        graphVerySad.background = CustomBarDrawable(this, Emociones("Muy triste", pVH, R.color.deepblue, verySad))
+
+        graph.background = fondo
+
+
+    }
+    fun perseJson(jsonArray: JSONArray): ArrayList<Emociones>{
+        var lista = ArrayList<Emociones>()
+        for (i in 0..jsonArray.length()){
+            try {
+                val nombre = jsonArray.getJSONObject(i).getString("nobre")
+                val porcentaje = jsonArray.getJSONObject(i).getDouble("porcentaje").toFloat()
+                val color = jsonArray.getJSONObject(i).getInt("color")
+                val total = jsonArray.getJSONObject(i).getDouble("nobre").toFloat()
+                val emocion = Emociones(nombre, porcentaje, color, total)
+                lista.add(emocion)
+            }catch (exception: JSONException) {
+                exception.printStackTrace()
+            }
+        }
+        return lista
+    }
+    fun guardar(){
+        var jsonArray = JSONArray()
+        var o: Int = 0
+        for(i in lista){
+            Log.d("objetos", i.toString())
+            var j: JSONObject = JSONObject()
+            j.put("nombre", i.nombre)
+            j.put("porcentaje", i.porcentaje)
+            j.put("color", i.color)
+            j.put("total", i.total)
+
+            jsonArray.put(o, j)
+            o++
+        }
+        jsonFile?.saveData(this, jsonArray.toString())
+        Toast.makeText(this, "Datos guardados", Toast.LENGTH_SHORT).show()
     }
 }

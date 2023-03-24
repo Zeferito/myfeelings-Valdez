@@ -2,9 +2,12 @@ package valdez.jaime.myfeelings
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.style.BackgroundColorSpan
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Toast
 import org.json.JSONArray
 import org.json.JSONException
@@ -15,6 +18,16 @@ import valdez.jaime.myfeelings.utilities.Emociones
 import valdez.jaime.myfeelings.utilities.JSONFile
 
 class MainActivity : AppCompatActivity() {
+
+    var graphVeryHappy: View = findViewById(R.id.graphVeryHappy)
+    var graphHappy: View = findViewById(R.id.graphHappy)
+    var graphNeutral: View = findViewById(R.id.graphNeutralHappy)
+    var graphSad: View = findViewById(R.id.graphSad)
+    var graphVerySad: View = findViewById(R.id.graphVerySad)
+    var graph: View = findViewById(R.id.bargraphs)
+
+    var icon: ImageView = findViewById(R.id.icon)
+
     var jsonFile: JSONFile? = null
     var veryHappy = 0.0f
     var happy = 0.0f
@@ -142,13 +155,6 @@ class MainActivity : AppCompatActivity() {
         lista.add(Emociones("Muy triste", pVS, R.color.deepblue, verySad))
 
         val fondo = CustomCircleDrawable(this, lista)
-
-        lateinit  var graphVeryHappy: String
-        lateinit var graphHappy: String
-        lateinit var graphNeutral: String
-        lateinit var graphSad: String
-        lateinit var graphVerySad: String
-        lateinit var graph: String
 
         graphVeryHappy.background = CustomBarDrawable(this, Emociones("Muy feliz", pVH, R.color.mustard, veryHappy))
         graphHappy.background = CustomBarDrawable(this, Emociones("Feliz", pH, R.color.orange, happy))

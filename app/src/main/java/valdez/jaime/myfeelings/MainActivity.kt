@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
     var sad = 0.0f
     var verySad = 0.0f
     var data: Boolean = false
-    var lista: ArrayList<Emociones>()
+    var lista = ArrayList<Emociones>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
